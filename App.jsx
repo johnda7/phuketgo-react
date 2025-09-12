@@ -30,6 +30,7 @@ export default function App() {
     <div className="min-h-screen bg-white text-gray-800">
       <header className="bg-white shadow-sm p-4">
         <h1 className="text-xl font-bold">PhuketGo</h1>
+        <p className="text-gray-600 mt-1">Привет! Добро пожаловать в ваш гид по Пхукету</p>
       </header>
       <main className="container mx-auto p-4">
         <div className="flex gap-2 mb-4">
