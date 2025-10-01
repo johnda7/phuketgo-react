@@ -1,5 +1,7 @@
 // Карточка одного тура. Использует данные из Directus
 // Фотографии загружаются из src/assets/{slug}/
+import { Link } from 'react-router-dom';
+
 export function TourCard({ tour }) {
   // Пытаемся загрузить главное фото тура
   const getMainImage = () => {
@@ -137,9 +139,11 @@ export function TourCard({ tour }) {
         </div>
 
         {/* Кнопка */}
-        <button className="mt-4 w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-3 rounded-lg hover:from-red-700 hover:to-red-800 text-sm font-semibold transition-all duration-300 shadow-md hover:shadow-xl transform hover:scale-105">
-          Подробнее →
-        </button>
+        <Link to={`/tour/${tour.slug}`}>
+          <button className="mt-4 w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-3 rounded-lg hover:from-red-700 hover:to-red-800 text-sm font-semibold transition-all duration-300 shadow-md hover:shadow-xl transform hover:scale-105">
+            Подробнее →
+          </button>
+        </Link>
       </div>
     </div>
   );
