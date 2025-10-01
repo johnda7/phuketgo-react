@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useDirectusTour } from '../hooks/useDirectusTours';
 import { Clock, Users, Star, MapPin, Calendar, CheckCircle, XCircle, AlertCircle, Info } from 'lucide-react';
+import Header from '../components/Header.jsx';
+import Footer from '../components/Footer.jsx';
 
 export default function TourDetailsPage() {
   const { slug } = useParams();
@@ -78,16 +80,8 @@ export default function TourDetailsPage() {
   const mainImage = getMainImage();
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="text-xl font-bold text-gray-800">PhuketGo</Link>
-            <Link to="/" className="text-sm text-gray-600 hover:text-red-600">← Назад к турам</Link>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-white flex flex-col">
+      <Header />
 
       {/* Breadcrumbs */}
       <section className="bg-gray-50 py-3">
@@ -299,37 +293,22 @@ export default function TourDetailsPage() {
       </section>
 
       {/* Mobile Booking Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:hidden z-50 shadow-lg">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-gray-600">от</p>
-            <p className="text-2xl font-bold text-red-600">
-              {tour.price_adult}<span className="text-lg ml-1">{tour.currency}</span>
-            </p>
-          </div>
-          <button className="bg-gradient-to-r from-red-600 to-red-700 text-white px-8 py-3 rounded-lg font-bold hover:from-red-700 hover:to-red-800 transition">
-            Забронировать
-          </button>
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 flex items-center justify-between sm:hidden z-50">
+        <div>
+          <div className="text-xs text-gray-600">От</div>
+          <div className="text-lg font-bold text-red-600">฿{tour.price}</div>
         </div>
+        <a 
+          href="https://t.me/phuketgo" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition"
+        >
+          Написать в Telegram
+        </a>
       </div>
 
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white py-8 mt-12">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-lg font-bold mb-2">PhuketGo</p>
-          <p className="text-gray-400 text-sm">Откройте лучшие места Пхукета</p>
-          <div className="mt-4">
-            <a 
-              href="https://t.me/phuketgo" 
-              className="text-red-400 hover:text-red-300 transition"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              📱 Telegram
-            </a>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useDirectusTours } from './hooks/useDirectusTours';
 import { ToursGrid } from './components/tours/TourCard.jsx';
+import Header from './components/Header.jsx';
+import Footer from './components/Footer.jsx';
 
 export default function App() {
   const [activeCategory, setActiveCategory] = useState('all');
@@ -20,21 +22,31 @@ export default function App() {
     : tours.filter(tour => tour.category === activeCategory);
 
   return (
-    <div className="min-h-screen bg-white text-gray-800">
-      <header className="bg-white shadow-sm p-4">
-        <h1 className="text-xl font-bold">PhuketGo</h1>
-        <p className="text-sm text-gray-600">Откройте лучшие места Пхукета</p>
-      </header>
-      <main className="container mx-auto p-4">
-        <div className="flex gap-2 mb-4 overflow-x-auto">
+    <div className="min-h-screen bg-white text-gray-800 flex flex-col">
+      <Header />
+      
+      <main className="container mx-auto p-4 flex-1">
+        {/* Hero Section */}
+        <section className="mb-8 text-center py-8">
+          <h1 className="text-3xl md:text-5xl font-bold text-gray-800 mb-4">
+            Лучшие туры на Пхукете 🏝️
+          </h1>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Забронируйте незабываемые экскурсии на острова, рафтинг, сафари и культурные туры. 
+            Русскоговорящие гиды, низкие цены, быстрое бронирование в Telegram.
+          </p>
+        </section>
+
+        {/* Categories Filter */}
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
           {categories.map(cat => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`px-4 py-2 rounded whitespace-nowrap ${
+              className={`px-4 py-2 rounded-lg whitespace-nowrap font-medium transition-all ${
                 activeCategory === cat 
-                  ? 'bg-red-600 text-white' 
-                  : 'bg-gray-100 hover:bg-gray-200'
+                  ? 'bg-red-600 text-white shadow-md' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
               {categoryNames[cat]}
@@ -72,6 +84,8 @@ export default function App() {
           </div>
         )}
       </main>
+      
+      <Footer />
     </div>
   );
 }
