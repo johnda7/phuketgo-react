@@ -6,7 +6,8 @@ import TourDetailsPage from './src/pages/TourDetailsPage.jsx';
 import './index.css';
 
 // Определяем базовый путь для GitHub Pages
-const basename = import.meta.env.PROD ? '/phuketgo-react' : '';
+// В production (GitHub Pages) используем /phuketgo-react, локально - /
+const basename = window.location.hostname === 'johnda7.github.io' ? '/phuketgo-react' : '';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
