@@ -1,0 +1,6 @@
+{
+  "languageModels.anthropic.apiKey": "ваш-новый-безопасный-ключ-здесь",
+  "chat.experimental.languageModels.anthropic": {
+    "apiKey": "ваш-новый-безопасный-ключ-здесь"
+  }
+}
