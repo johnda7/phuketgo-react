@@ -3,18 +3,48 @@
 export function TourCard({ tour }) {
   // Пытаемся загрузить главное фото тура
   const getMainImage = () => {
+    // Специальные маппинги для туров без папок
+    const specialMappings = {
+      'james-bond-island': 'james-1-CrrUEsJ1.jpg',
+      'racha-coral-islands': 'racha-1-DwZ8WjdT.jpg',
+    };
+
+    // Маппинг slug Directus → названия папок с фото
+    const slugToFolder = {
+      'khao-lak-safari': 'kao-lak-safari',
+      '11-islands-mega': 'eleven-islands-mega',
+      '11-islands-standard': 'phi-phi-2days', // временно используем фото пхи-пхи
+    };
+
+    // Если есть прямой файл в корне assets
+    if (specialMappings[tour.slug]) {
+      try {
+        return new URL(`../../assets/${specialMappings[tour.slug]}`, import.meta.url).href;
+      } catch {
+        // Продолжаем попытки
+      }
+    }
+
+    // Получаем название папки с фото
+    const photoFolder = slugToFolder[tour.slug] || tour.slug;
+
     try {
       // Пробуем разные варианты главного фото
-      return new URL(`../../assets/${tour.slug}/main-photo.jpg`, import.meta.url).href;
+      return new URL(`../../assets/${photoFolder}/main-photo.jpg`, import.meta.url).href;
     } catch {
       try {
-        return new URL(`../../assets/${tour.slug}/maya-bay-1.jpg`, import.meta.url).href;
+        return new URL(`../../assets/${photoFolder}/maya-bay-1.jpg`, import.meta.url).href;
       } catch {
         try {
-          return new URL(`../../assets/${tour.slug}/gallery-01-railay-main.jpg`, import.meta.url).href;
+          return new URL(`../../assets/${photoFolder}/gallery-01-railay-main.jpg`, import.meta.url).href;
         } catch {
-          // Fallback на градиент если фото не найдено
-          return null;
+          try {
+            // Пробуем универсальное имя для новых туров
+            return new URL(`../../assets/${photoFolder}/snimok-jekrana-2025-09-06-v-20.56.21.png`, import.meta.url).href;
+          } catch {
+            // Fallback на градиент если фото не найдено
+            return null;
+          }
         }
       }
     }
