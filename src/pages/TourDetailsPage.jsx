@@ -1,14 +1,30 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useDirectusTour } from '../hooks/useDirectusTours';
+import { useTelegramWebApp } from '../hooks/useTelegramWebApp';
 import { Clock, Users, Star, MapPin, Calendar, CheckCircle, XCircle, AlertCircle, Info } from 'lucide-react';
 import Header from '../components/Header.jsx';
 import Footer from '../components/Footer.jsx';
 
 export default function TourDetailsPage() {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const { tour, loading, error } = useDirectusTour(slug);
+  const { isInTelegram, showBackButton, hideBackButton, onBackButtonClick, hapticFeedback } = useTelegramWebApp();
   const [selectedImage, setSelectedImage] = useState(0);
+
+  // Настройка кнопки "Назад" в Telegram
+  useEffect(() => {
+    if (isInTelegram) {
+      showBackButton();
+      onBackButtonClick(() => {
+        hapticFeedback('impact', 'light');
+        navigate('/');
+      });
+      
+      return () => hideBackButton();
+    }
+  }, [isInTelegram]);
 
   useEffect(() => {
     if (tour) {

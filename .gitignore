@@ -14,6 +14,8 @@ build/
 
 # Credentials (passwords, tokens)
 CREDENTIALS.md
+RAILWAY_CREDENTIALS.md
+.secrets/
 
 # Logs
 npm-debug.log*

@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDirectusTours } from './hooks/useDirectusTours';
+import { useTelegramWebApp } from './hooks/useTelegramWebApp';
 import { ToursGrid } from './components/tours/TourCard.jsx';
 import Header from './components/Header.jsx';
 import Footer from './components/Footer.jsx';
@@ -7,6 +8,14 @@ import Footer from './components/Footer.jsx';
 export default function App() {
   const [activeCategory, setActiveCategory] = useState('all');
   const { tours, loading, error } = useDirectusTours();
+  const { isInTelegram, user, platform, hapticFeedback } = useTelegramWebApp();
+  
+  // Показываем информацию о пользователе Telegram (если запущено в Telegram)
+  useEffect(() => {
+    if (isInTelegram && user) {
+      console.log('👤 Telegram User:', user);
+    }
+  }, [isInTelegram, user]);
   
   const categories = ['all', 'islands', 'mainland', 'adventure', 'cultural'];
   const categoryNames = {
@@ -21,11 +30,28 @@ export default function App() {
     ? tours 
     : tours.filter(tour => tour.category === activeCategory);
 
+  // Добавляем вибрацию при смене категории (только в Telegram)
+  const handleCategoryChange = (category) => {
+    setActiveCategory(category);
+    if (isInTelegram) {
+      hapticFeedback('selection');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white text-gray-800 flex flex-col">
       <Header />
       
       <main className="container mx-auto p-4 flex-1">
+        {/* Telegram User Info (показывается только в Telegram) */}
+        {isInTelegram && user && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm">
+            <span className="text-blue-700">
+              👋 Привет, {user.first_name}! Приложение запущено в Telegram ({platform})
+            </span>
+          </div>
+        )}
+
         {/* Hero Section */}
         <section className="mb-8 text-center py-8">
           <h1 className="text-3xl md:text-5xl font-bold text-gray-800 mb-4">
@@ -42,7 +68,7 @@ export default function App() {
           {categories.map(cat => (
             <button
               key={cat}
-              onClick={() => setActiveCategory(cat)}
+              onClick={() => handleCategoryChange(cat)}
               className={`px-4 py-2 rounded-lg whitespace-nowrap font-medium transition-all ${
                 activeCategory === cat 
                   ? 'bg-red-600 text-white shadow-md' 
