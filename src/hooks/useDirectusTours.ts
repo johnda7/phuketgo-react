@@ -44,12 +44,14 @@ export function useDirectusTours() {
     async function fetchTours() {
       try {
         setLoading(true);
+        console.log('🚀 Fetching tours from Directus...');
         const data = await toursApi.getAll();
+        console.log('✅ Tours received:', data.length, data);
         setTours(data);
         setError(null);
       } catch (err) {
         // Fallback на моковые данные если Directus недоступен
-        console.warn('Directus unavailable, using mock data:', err);
+        console.error('❌ Directus error, using mock data:', err);
         setTours(MOCK_TOURS);
         setError(null); // Не показываем ошибку пользователю
       } finally {

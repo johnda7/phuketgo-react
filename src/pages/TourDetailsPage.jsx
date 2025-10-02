@@ -219,74 +219,105 @@ export default function TourDetailsPage() {
           )}
 
           {/* Itinerary */}
-          {tour.itinerary && tour.itinerary.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold mb-4">📅 Программа тура</h2>
-              <div className="space-y-4">
-                {tour.itinerary.map((item, index) => (
-                  <div key={index} className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex items-start">
-                      <div className="bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 font-bold">
-                        {index + 1}
-                      </div>
-                      <div className="ml-4 flex-1">
-                        <div className="flex items-center gap-3 mb-1">
-                          {item.day && <span className="font-bold text-red-600">{item.day}</span>}
-                          {item.time && <span className="text-gray-600 text-sm">{item.time}</span>}
+          {tour.schedule && (() => {
+            try {
+              const schedule = typeof tour.schedule === 'string' ? JSON.parse(tour.schedule) : tour.schedule;
+              return Array.isArray(schedule) && schedule.length > 0 ? (
+                <div className="mb-8">
+                  <h2 className="text-2xl font-bold mb-4">📅 Программа тура</h2>
+                  <div className="space-y-4">
+                    {schedule.map((item, index) => (
+                      <div key={index} className="bg-gray-50 rounded-lg p-4">
+                        <div className="flex items-start">
+                          <div className="bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 font-bold">
+                            {index + 1}
+                          </div>
+                          <div className="ml-4 flex-1">
+                            <div className="flex items-center gap-3 mb-1">
+                              {item.time && <span className="text-gray-600 text-sm">{item.time}</span>}
+                            </div>
+                            <p className="text-gray-700">{item.activity || item.description || item}</p>
+                          </div>
                         </div>
-                        <p className="text-gray-700">{item.activity}</p>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
+                </div>
+              ) : null;
+            } catch (e) {
+              console.error('Error parsing schedule:', e);
+              return null;
+            }
+          })()}
 
           {/* Included */}
-          {tour.included && tour.included.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold mb-4">💰 Включено в стоимость</h2>
-              <ul className="space-y-2">
-                {tour.included.map((item, index) => (
-                  <li key={index} className="flex items-start">
-                    <CheckCircle className="w-5 h-5 text-green-600 mr-3 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-700">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          {tour.included && (() => {
+            try {
+              const included = typeof tour.included === 'string' ? JSON.parse(tour.included) : tour.included;
+              return Array.isArray(included) && included.length > 0 ? (
+                <div className="mb-8">
+                  <h2 className="text-2xl font-bold mb-4">💰 Включено в стоимость</h2>
+                  <ul className="space-y-2">
+                    {included.map((item, index) => (
+                      <li key={index} className="flex items-start">
+                        <CheckCircle className="w-5 h-5 text-green-600 mr-3 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-700">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null;
+            } catch (e) {
+              console.error('Error parsing included:', e);
+              return null;
+            }
+          })()}
 
           {/* Excluded */}
-          {tour.excluded && tour.excluded.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold mb-4">💸 Дополнительные расходы</h2>
-              <ul className="space-y-2">
-                {tour.excluded.map((item, index) => (
-                  <li key={index} className="flex items-start">
-                    <XCircle className="w-5 h-5 text-red-600 mr-3 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-700">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          {tour.not_included && (() => {
+            try {
+              const notIncluded = typeof tour.not_included === 'string' ? JSON.parse(tour.not_included) : tour.not_included;
+              return Array.isArray(notIncluded) && notIncluded.length > 0 ? (
+                <div className="mb-8">
+                  <h2 className="text-2xl font-bold mb-4">💸 Дополнительные расходы</h2>
+                  <ul className="space-y-2">
+                    {notIncluded.map((item, index) => (
+                      <li key={index} className="flex items-start">
+                        <XCircle className="w-5 h-5 text-red-600 mr-3 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-700">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null;
+            } catch (e) {
+              console.error('Error parsing not_included:', e);
+              return null;
+            }
+          })()}
 
           {/* Requirements */}
-          {tour.requirements && tour.requirements.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold mb-4">🎒 Взять с собой</h2>
-              <ul className="space-y-2">
-                {tour.requirements.map((item, index) => (
-                  <li key={index} className="flex items-start">
-                    <Info className="w-5 h-5 text-blue-600 mr-3 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-700">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          {tour.what_to_bring && (() => {
+            try {
+              const whatToBring = typeof tour.what_to_bring === 'string' ? JSON.parse(tour.what_to_bring) : tour.what_to_bring;
+              return Array.isArray(whatToBring) && whatToBring.length > 0 ? (
+                <div className="mb-8">
+                  <h2 className="text-2xl font-bold mb-4">🎒 Взять с собой</h2>
+                  <ul className="space-y-2">
+                    {whatToBring.map((item, index) => (
+                      <li key={index} className="flex items-start">
+                        <Info className="w-5 h-5 text-blue-600 mr-3 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-700">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null;
+            } catch (e) {
+              console.error('Error parsing what_to_bring:', e);
+              return null;
+            }
+          })()}
 
           {/* Important Info */}
           {tour.important_info && tour.important_info.length > 0 && (

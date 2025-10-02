@@ -59,6 +59,7 @@ export const toursApi = {
   // Получить все опубликованные туры
   async getAll() {
     try {
+      console.log('📡 Directus API URL:', directusUrl);
       const tours = await directus.request(
         readItems('tours', {
           filter: {
@@ -69,10 +70,11 @@ export const toursApi = {
           sort: ['-date_created']
         })
       );
+      console.log('📦 Directus response:', tours);
       return tours || [];
     } catch (error) {
-      console.error('Error fetching tours:', error);
-      return [];
+      console.error('❌ Error fetching tours from Directus:', error);
+      throw error; // Пробрасываем ошибку наверх
     }
   },
 

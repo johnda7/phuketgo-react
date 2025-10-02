@@ -1,0 +1,16 @@
+-- Обновление фотографий для тура "Достопримечательности Пхукета"
+
+UPDATE tours 
+SET 
+  main_image = '/src/assets/dostoprimechatelnosti-phuketa/big-buddha.jpg',
+  gallery = '["\/src\/assets\/dostoprimechatelnosti-phuketa\/big-buddha.jpg","\/src\/assets\/dostoprimechatelnosti-phuketa\/big-buddha-viewpoint.jpg","\/src\/assets\/dostoprimechatelnosti-phuketa\/wat-chalong-main.jpg","\/src\/assets\/dostoprimechatelnosti-phuketa\/wat-chalong-1.jpg","\/src\/assets\/dostoprimechatelnosti-phuketa\/wat-chalong-2.jpg","\/src\/assets\/dostoprimechatelnosti-phuketa\/wat-chalong.jpg","\/src\/assets\/dostoprimechatelnosti-phuketa\/old-town-main.jpg","\/src\/assets\/dostoprimechatelnosti-phuketa\/old-town-1.jpg","\/src\/assets\/dostoprimechatelnosti-phuketa\/old-town.jpg","\/src\/assets\/dostoprimechatelnosti-phuketa\/promthep-cape-main.jpg","\/src\/assets\/dostoprimechatelnosti-phuketa\/promthep-cape-sunset.jpg","\/src\/assets\/dostoprimechatelnosti-phuketa\/promthep-cape-1.jpg","\/src\/assets\/dostoprimechatelnosti-phuketa\/promthep-cape.jpg","\/src\/assets\/dostoprimechatelnosti-phuketa\/karon-viewpoint-main.jpg","\/src\/assets\/dostoprimechatelnosti-phuketa\/karon-viewpoint-1.jpg","\/src\/assets\/dostoprimechatelnosti-phuketa\/karon-viewpoint-2.jpg","\/src\/assets\/dostoprimechatelnosti-phuketa\/karon-viewpoint.jpg","\/src\/assets\/dostoprimechatelnosti-phuketa\/rang-hill-main.jpg","\/src\/assets\/dostoprimechatelnosti-phuketa\/rang-hill-1.jpg","\/src\/assets\/dostoprimechatelnosti-phuketa\/windmill-viewpoint-main.jpg","\/src\/assets\/dostoprimechatelnosti-phuketa\/windmill-viewpoint-1.jpg","\/src\/assets\/dostoprimechatelnosti-phuketa\/windmill-viewpoint-2.jpg","\/src\/assets\/dostoprimechatelnosti-phuketa\/elephant-feeding-main.jpg","\/src\/assets\/dostoprimechatelnosti-phuketa\/elephant-feeding-1.jpg","\/src\/assets\/dostoprimechatelnosti-phuketa\/seafood-market-main.jpg","\/src\/assets\/dostoprimechatelnosti-phuketa\/seafood-market-1.jpg","\/src\/assets\/dostoprimechatelnosti-phuketa\/muay-thai.webp","\/src\/assets\/dostoprimechatelnosti-phuketa\/rafting.jpg"]'
+WHERE slug = 'dostoprimechatelnosti-phuketa';
+
+-- Проверка результата
+SELECT 
+  id,
+  title,
+  main_image,
+  substr(gallery, 1, 100) || '...' as gallery_preview
+FROM tours 
+WHERE slug = 'dostoprimechatelnosti-phuketa';

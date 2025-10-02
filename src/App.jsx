@@ -10,6 +10,11 @@ export default function App() {
   const { tours, loading, error } = useDirectusTours();
   const { isInTelegram, user, platform, hapticFeedback } = useTelegramWebApp();
   
+  // Отладка: показываем что получили от Directus
+  useEffect(() => {
+    console.log('🔍 DEBUG Tours:', { count: tours.length, loading, error, tours });
+  }, [tours, loading, error]);
+  
   // Показываем информацию о пользователе Telegram (если запущено в Telegram)
   useEffect(() => {
     if (isInTelegram && user) {
