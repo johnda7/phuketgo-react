@@ -1,10 +1,21 @@
-# 🤖 ПОЛНОЕ РУКОВОДСТВО ДЛЯ AI АГЕНТА: РАБОТА С ПРОЕКТОМ PHUKETGO
+# 🤖 ПОЛНОЕ РУКОВОДСТВО ДЛЯ AI АГЕНТА v2.0 - ОБНОВЛЕНО 03.10.2025
 
-> ## 🔴 КРИТИЧНО! ПРОЧИТАЙ ЭТО ПЕРВЫМ ДЕЛОМ!
+> ## 🎉 ДЕПЛОЙ ИСПРАВЛЕН! ВСЁ РАБОТАЕТ!
 >
-> Это полная инструкция для Claude Sonnet 4.5 агента.
-> Здесь описано ВСЁ что нужно знать о проекте и как работать САМОСТОЯТЕЛЬНО.
-> **НЕ ПРОСИ ПОЛЬЗОВАТЕЛЯ ДЕЛАТЬ ЧТО-ТО ВРУЧНУЮ - ДЕЛАЙ САМ!**
+> **Дата обновления:** 3 октября 2025  
+> **Коммит с рабочей конфигурацией:** `9a7fe25`  
+> **Backup коммит (если сломается):** `3e6d7bb`
+>
+> ### ✅ ЧТО БЫЛО ИСПРАВЛЕНО:
+> - vite.config.js возвращен к оригиналу (БЕЗ hardcode!)
+> - Создан `.env.production` с Railway URL (в git!)
+> - CORS на Railway исправлен (только GitHub Pages URL)
+> - GitHub Pages показывает 10 туров из Directus ✅
+>
+> ### 🚨 ВАЖНО ДЛЯ АГЕНТА:
+> **НЕ ДОБАВЛЯЙ hardcode в vite.config.js!**  
+> **НЕ ДОБАВЛЯЙ localhost в CORS_ORIGIN на Railway!**  
+> Если нужно откатиться: `git reset --hard 3e6d7bb`
 
 ---
 
@@ -1002,76 +1013,101 @@ open http://localhost:5173
 
 ## 8. КАК ЗАДЕПЛОИТЬ НА PRODUCTION
 
-### Frontend (автоматический деплой)
+### ✅ ПРАВИЛЬНАЯ КОНФИГУРАЦИЯ (коммит 9a7fe25)
 
-**GitHub Pages настроен автоматически!**
+**vite.config.js - БЕЗ hardcode:**
+```javascript
+export default defineConfig({
+  plugins: [react()],
+  base: process.env.NODE_ENV === 'production' ? '/phuketgo-react/' : '/',
+  server: { port: 5173, strictPort: true },
+  build: { outDir: 'dist' }
+  // ❌ НЕТ define блока! Vite читает .env.production сам
+});
+```
+
+**`.env.production` - В GIT:**
+```env
+# Production Environment Variables
+# Этот файл МОЖНО коммитить в git, так как Railway URL публичный
+VITE_DIRECTUS_URL=https://phuketgo-directus-production.up.railway.app
+```
+
+**Railway CORS_ORIGIN:**
+```
+https://johnda7.github.io
+```
+❌ **НЕ ДОБАВЛЯЙ** `http://localhost:5173` - это сломает production!
+
+---
+
+### Frontend - деплой на GitHub Pages
 
 ```bash
 cd /Users/evgeniymikhelev/phuketgo-react-1
 
-# 1. Сделай изменения
-# 2. Коммит
+# 1. Pull последних изменений
+git pull origin main
+
+# 2. Сделай изменения (код, контент)
+
+# 3. Проверь что .env.production существует
+cat .env.production
+# Должно быть: VITE_DIRECTUS_URL=https://phuketgo-directus-production.up.railway.app
+
+# 4. Билд
+npm run build
+
+# 5. Проверь что Railway URL в бандле
+grep -o "railway.app" dist/assets/*.js
+# Должно найти!
+
+# 6. Коммит
 git add .
 git commit -m "feat: добавлен новый тур"
 
-# 3. Push
+# 7. Push
 git push origin main
 
-# 4. GitHub Actions автоматически:
-#    - Запустит npm install
-#    - Запустит npm run build
-#    - Задеплоит на GitHub Pages
-#    - Сайт обновится через 1-2 минуты
-```
+# 8. Деплой
+npm run deploy
+# или: npx gh-pages -d dist
 
-**Проверь статус деплоя:**
-```bash
-# Открой Actions в браузере
-open https://github.com/johnda7/phuketgo-react/actions
-
-# Или проверь через GitHub CLI (если установлен)
-gh run list --limit 3
-```
-
-**После деплоя:**
-```bash
-# Подожди 1-2 минуты
+# 9. Подожди 1-2 минуты
 sleep 120
 
-# Открой production сайт
-open https://johnda7.github.io/phuketgo-react
+# 10. Проверь production
+open https://johnda7.github.io/phuketgo-react/
+```
 
-# Проверь что изменения применились
+**Проверка после деплоя:**
+```bash
+# Проверь что туры загружаются
+curl -s "https://johnda7.github.io/phuketgo-react/" | grep "dostoprimechatelnosti"
+
+# Проверь DevTools:
+# - Network → XHR → должны быть запросы к railway.app
+# - Console → "Tours received: 10"
 ```
 
 ---
 
-### Backend (Railway - только при изменении backend кода)
-
-**Обычно НЕ НУЖНО!** Backend уже задеплоен и работает.
-
-**Если нужно обновить backend:**
+### 🚨 ЕСЛИ ЧТО-ТО СЛОМАЛОСЬ - ОТКАТ:
 
 ```bash
-cd /Users/evgeniymikhelev/Documents/GitHub/phuketgo-directus
+cd /Users/evgeniymikhelev/phuketgo-react-1
 
-# 1. Коммит
-git add .
-git commit -m "fix: обновлена конфигурация Directus"
+# Откат к рабочему коммиту
+git reset --hard 3e6d7bb
 
-# 2. Push
-git push origin main
+# Или к последнему рабочему
+git reset --hard 9a7fe25
 
-# 3. Railway автоматически задеплоит (через railway.json)
-```
+# Пересоздай билд
+npm run build
 
-**Проверь:**
-```bash
-# Подожди 2-3 минуты
-sleep 180
-
-# Проверь что API работает
-curl "https://phuketgo-directus-production.up.railway.app/items/tours" | head -50
+# Деплой
+npm run deploy
 ```
 
 ---
