@@ -57,24 +57,14 @@ export default function TourDetailsPage() {
     );
   }
 
-  // Debug: выводим данные тура в консоль
-  console.log('🔍 Tour data:', {
-    slug: tour.slug,
-    main_image: tour.main_image,
-    gallery: tour.gallery,
-    gallery_type: typeof tour.gallery,
-  });
-
   // Получаем главное фото из Directus или fallback на старую логику
   const getMainImage = () => {
     // Сначала проверяем main_image из Directus
     if (tour.main_image) {
-      console.log('✅ Using main_image from Directus:', tour.main_image);
       try {
         // Очищаем путь от лишних символов и убираем /src/
         let imagePath = tour.main_image.trim().replace(/^["']|["']$/g, ''); // удаляем кавычки
         imagePath = imagePath.replace('/src/', '../');
-        console.log('🔧 Cleaned path:', imagePath);
         return new URL(imagePath, import.meta.url).href;
       } catch (e) {
         console.error('Error loading main_image from Directus:', e);
@@ -118,8 +108,6 @@ export default function TourDetailsPage() {
 
   // Получаем галерею из Directus
   const getGallery = () => {
-    console.log('🖼️ Processing gallery:', tour.gallery);
-    
     if (!tour.gallery) return [];
     
     try {
@@ -137,8 +125,6 @@ export default function TourDetailsPage() {
         gallery = JSON.parse(gallery);
       }
       
-      console.log('📸 Parsed gallery:', gallery);
-      
       if (!Array.isArray(gallery)) return [];
       
       // Преобразуем пути в URL
@@ -147,7 +133,6 @@ export default function TourDetailsPage() {
           // Очищаем путь от лишних символов и убираем /src/
           let imagePath = path.trim().replace(/^["']|["']$/g, ''); // удаляем кавычки
           imagePath = imagePath.replace('/src/', '../');
-          console.log('🔧 Gallery image path:', path, '→', imagePath);
           return new URL(imagePath, import.meta.url).href;
         } catch (e) {
           console.error('Error loading gallery image:', path, e);
