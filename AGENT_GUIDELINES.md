@@ -562,6 +562,250 @@ open "https://phuketgo-directus-production.up.railway.app/admin"
 
 ---
 
+### ❌ ОШИБКА #10: "Забыл что Vite не читает .env.local в production билде"
+
+**Проблема:**
+GitHub Pages показывает только 2 mock тура вместо 10 из Directus.
+
+**Почему:**
+- Создал `.env.production` или `.env.production.local`
+- Vite **НЕ ЧИТАЕТ `.env.local` при `npm run build`** - это дизайн!
+- `VITE_DIRECTUS_URL` = undefined в production
+- Код использует fallback на MOCK_TOURS (2 тура)
+
+**Симптомы:**
+```bash
+# Билд прошёл успешно
+npm run build
+# ✓ built in 1.85s
+
+# Но в dist/assets/*.js всё ещё localhost:8055
+grep "railway.app" dist/assets/*.js
+# (ничего не найдено)
+
+# На GitHub Pages:
+# - Только 2 тура вместо 10
+# - В Network: запросы к localhost:8055 (CORS error)
+```
+
+**❌ НЕПРАВИЛЬНЫЕ РЕШЕНИЯ:**
+
+```bash
+# ❌ Создать .env.production
+echo 'VITE_DIRECTUS_URL=https://...railway.app' > .env.production
+# НЕ РАБОТАЕТ! Vite игнорирует в production build
+
+# ❌ Создать .env.production.local  
+echo 'VITE_DIRECTUS_URL=https://...railway.app' > .env.production.local
+# Тоже не работает стабильно!
+```
+
+**✅ ПРАВИЛЬНОЕ РЕШЕНИЕ:**
+
+Хардкод Railway URL в `vite.config.js` через `define`:
+
+```javascript
+// vite.config.js
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  base: process.env.NODE_ENV === 'production' ? '/phuketgo-react/' : '/',
+  server: {
+    port: 5173,
+    strictPort: true
+  },
+  build: {
+    outDir: 'dist'
+  },
+  define: {
+    // 🔥 ВОТ РЕШЕНИЕ! Хардкодим для production
+    'import.meta.env.VITE_DIRECTUS_URL': process.env.NODE_ENV === 'production' 
+      ? JSON.stringify('https://phuketgo-directus-production.up.railway.app')
+      : undefined // В dev режиме берём из .env.local
+  }
+});
+```
+
+**Как проверить что исправлено:**
+
+```bash
+# 1. Пересобрать
+npm run build
+
+# 2. Проверить что Railway URL в сборке
+grep -o "railway.app" dist/assets/*.js
+# Должно найти!
+
+# 3. Задеплоить
+npx gh-pages -d dist
+
+# 4. Подождать 1-2 минуты
+
+# 5. Проверить GitHub Pages
+open https://johnda7.github.io/phuketgo-react/
+# Должны быть все 10 туров!
+```
+
+**Почему fallback на MOCK_TOURS:**
+
+```typescript
+// src/hooks/useDirectusTours.ts
+export function useDirectusTours() {
+  const [tours, setTours] = useState<any[]>([]);
+  
+  useEffect(() => {
+    async function fetchTours() {
+      try {
+        const data = await toursApi.getAll();
+        setTours(data);
+      } catch (err) {
+        // 🔥 ВОТ ПОЧЕМУ 2 ТУРА!
+        // Когда Directus недоступен → fallback
+        console.warn('Directus unavailable, using mock data:', err);
+        setTours(MOCK_TOURS); // 2 mock тура
+      }
+    }
+    fetchTours();
+```
+
+**ВАЖНО:** Это специальная фича предыдущего агента! Fallback гарантирует что сайт всегда работает, даже если Directus упал.
+
+---
+
+### ❌ ОШИБКА #11: "Забыл как туры изначально добавлялись через SQL"
+
+**Проблема:**
+Нужно добавить 10 новых туров, но забыл проверенный рабочий метод.
+
+**История успеха (commit 13af1bc от 2 октября 00:01):**
+
+Первые 10 туров добавлены через **SQL INSERT напрямую в базу данных SQLite**:
+
+```bash
+# Репозиторий: ~/Documents/GitHub/phuketgo-directus
+# Файл: import-tours-direct.sql
+
+INSERT INTO tours (
+  slug, title, subtitle, description, 
+  price_adult, price_child, price_infant, currency,
+  duration, group_size, rating, reviews_count, 
+  category, tags, status, sort
+) VALUES 
+  ('phi-phi-2days', 'Пхи-Пхи 2 дня / 1 ночь', '...', '...', 4000, 3500, 0, '฿', ..., 1),
+  ('james-bond-island', 'Залив Пханг Нга и остров Джеймса Бонда', ..., 2),
+  ('pearls-andaman-sea', 'Жемчужины Андаманского моря', ..., 3),
+  # ... всего 10 туров
+```
+
+**Полная процедура (проверено работает):**
+
+```bash
+# 1. Перейти в репозиторий Directus
+cd ~/Documents/GitHub/phuketgo-directus
+
+# 2. Создать SQL файл с новыми турами
+cat > import-new-tours.sql << 'EOF'
+INSERT INTO tours (slug, title, subtitle, description, 
+price_adult, price_child, price_infant, currency,
+duration, group_size, rating, reviews_count, 
+category, tags, status, sort, 
+main_image, gallery, included, not_included, what_to_bring, schedule)
+VALUES 
+('new-tour-slug', 'Название тура', 'Подзаголовок', 'Описание...', 
+2000, 1800, 0, '฿',
+'1 день', 'до 20 человек', 4.7, 45,
+'islands', '["острова","пляжи"]', 'published', 11,
+'../assets/new-tour/main.jpg',
+'["../assets/new-tour/1.jpg", "../assets/new-tour/2.jpg"]',
+'["Трансфер от отеля", "Гид на русском"]',
+'["Личные расходы", "Дополнительные экскурсии"]',
+'["Купальник", "Солнцезащитный крем"]',
+'[{"time":"08:00","title":"Встреча в отеле","description":"Трансфер"}]');
+EOF
+
+# 3. Применить SQL
+sqlite3 data.db < import-new-tours.sql
+
+# 4. Проверить
+sqlite3 data.db "SELECT COUNT(*) FROM tours;"
+# Было 10 → стало 11+
+
+# 5. Закоммитить data.db
+git add data.db
+git commit -m "feat: добавлен новый тур [название]"
+git push
+
+# 6. Railway автоматически задеплоит (1-2 минуты)
+
+# 7. Проверить на production
+curl "https://phuketgo-directus-production.up.railway.app/items/tours?limit=50" | jq length
+# Должно вернуть новое количество
+```
+
+**КРИТИЧЕСКИ ВАЖНО:**
+
+1. **JSON поля как TEXT:**
+   - `gallery` = `'["path1.jpg", "path2.jpg"]'` (в одинарных кавычках!)
+   - `included` = `'["Трансфер", "Гид"]'` (строка JSON, не массив!)
+   - `tags` = `'["острова","пляжи"]'` (аналогично)
+
+2. **Пути к фотографиям:**
+   - Формат: `../assets/tour-slug/photo.jpg`
+   - Префикс `../` ОБЯЗАТЕЛЕН для корректной загрузки!
+
+3. **Порядок действий:**
+   - Сначала скопировать фото в `/src/assets/tour-slug/`
+   - Потом создать SQL с правильными путями
+   - Применить к data.db
+   - Закоммитить и запушить
+   - Railway автоматически задеплоит
+
+**Файлы для примера:**
+
+```bash
+# Все SQL скрипты в ~/Documents/GitHub/phuketgo-directus/
+ls -la *.sql
+
+# create-tours-table.sql      - Создание таблицы
+# import-tours-direct.sql     - Первые 10 туров (работает!)
+# fix-permissions.sql         - Настройка прав доступа
+# fix-public-access.sql       - Публичный доступ к API
+```
+
+**Почему этот метод лучше всего:**
+
+✅ Скорость: 5-10 минут на 10 туров  
+✅ Надёжность: прямой INSERT в SQLite  
+✅ Контроль: видишь весь SQL код  
+✅ Версионность: всё в git  
+✅ Автодеплой: Railway сам подхватит изменения  
+
+**Альтернативные методы (медленнее):**
+
+- ❌ curl API: 30-60 сек на 1 запрос = 10-20 минут на 10 туров
+- ⚠️ Admin Panel: удобно для редактирования, но долго для массового добавления
+- ✅ SQL INSERT: 5-10 минут на любое количество туров!
+  }, []);
+  
+  return { tours };
+}
+```
+
+**Это специально сделано предыдущим агентом:**
+- Если Directus недоступен → показать хоть что-то
+- MOCK_TOURS = 2 тура для демонстрации
+- НЕ УДАЛЯЙ этот fallback!
+
+**✅ ЗАПОМНИ:**
+- Vite НЕ читает `.env.local` в production по дизайну
+- Используй `define` в `vite.config.js` для production переменных
+- `.env.local` остаётся только для dev режима
+- Fallback на MOCK_TOURS - это не баг, это фича!
+
+---
+
 ### 📋 ФИНАЛЬНЫЙ ЧЕКЛИСТ ДЛЯ АГЕНТА
 
 **Перед тем как сказать "Готово", проверь:**
