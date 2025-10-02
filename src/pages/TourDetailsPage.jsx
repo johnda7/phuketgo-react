@@ -57,13 +57,24 @@ export default function TourDetailsPage() {
     );
   }
 
+  // Debug: выводим данные тура в консоль
+  console.log('🔍 Tour data:', {
+    slug: tour.slug,
+    main_image: tour.main_image,
+    gallery: tour.gallery,
+    gallery_type: typeof tour.gallery,
+  });
+
   // Получаем главное фото из Directus или fallback на старую логику
   const getMainImage = () => {
     // Сначала проверяем main_image из Directus
     if (tour.main_image) {
+      console.log('✅ Using main_image from Directus:', tour.main_image);
       try {
-        // Убираем /src/ из пути, т.к. import.meta.url уже указывает на src
-        const imagePath = tour.main_image.replace('/src/', '../');
+        // Очищаем путь от лишних символов и убираем /src/
+        let imagePath = tour.main_image.trim().replace(/^["']|["']$/g, ''); // удаляем кавычки
+        imagePath = imagePath.replace('/src/', '../');
+        console.log('🔧 Cleaned path:', imagePath);
         return new URL(imagePath, import.meta.url).href;
       } catch (e) {
         console.error('Error loading main_image from Directus:', e);
@@ -107,19 +118,36 @@ export default function TourDetailsPage() {
 
   // Получаем галерею из Directus
   const getGallery = () => {
+    console.log('🖼️ Processing gallery:', tour.gallery);
+    
     if (!tour.gallery) return [];
     
     try {
       // Парсим JSON если это строка
-      const gallery = typeof tour.gallery === 'string' ? JSON.parse(tour.gallery) : tour.gallery;
+      let gallery = tour.gallery;
+      
+      // Если это строка, парсим её
+      if (typeof gallery === 'string') {
+        // Иногда Directus возвращает двойной JSON: "\"[...]\"" или "[...]"
+        gallery = gallery.trim();
+        // Убираем внешние кавычки если есть
+        if (gallery.startsWith('"') && gallery.endsWith('"')) {
+          gallery = gallery.slice(1, -1).replace(/\\"/g, '"');
+        }
+        gallery = JSON.parse(gallery);
+      }
+      
+      console.log('📸 Parsed gallery:', gallery);
       
       if (!Array.isArray(gallery)) return [];
       
       // Преобразуем пути в URL
       return gallery.map(path => {
         try {
-          // Убираем /src/ из пути
-          const imagePath = path.replace('/src/', '../');
+          // Очищаем путь от лишних символов и убираем /src/
+          let imagePath = path.trim().replace(/^["']|["']$/g, ''); // удаляем кавычки
+          imagePath = imagePath.replace('/src/', '../');
+          console.log('🔧 Gallery image path:', path, '→', imagePath);
           return new URL(imagePath, import.meta.url).href;
         } catch (e) {
           console.error('Error loading gallery image:', path, e);
@@ -152,33 +180,91 @@ export default function TourDetailsPage() {
         </div>
       </section>
 
-      {/* Main Image */}
+      {/* Photo Gallery Grid */}
       <section className="py-6">
         <div className="container mx-auto px-4">
-          <div className="relative w-full h-64 md:h-96 rounded-xl overflow-hidden mb-4">
-            {mainImage ? (
+          {/* Главное фото + мини-галерея */}
+          {galleryImages.length > 0 ? (
+            <div className="relative">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 rounded-xl overflow-hidden">
+                {/* Большое главное фото слева */}
+                <div className="relative md:row-span-2 h-64 md:h-96">
+                  <img 
+                    src={galleryImages[0]} 
+                    alt={tour.title}
+                    className="w-full h-full object-cover cursor-pointer hover:opacity-95 transition"
+                    onClick={() => setSelectedImage(0)}
+                  />
+                  
+                  {/* Category badge */}
+                  <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-semibold">
+                    {tour.category === 'islands' && '🏝️ Острова'}
+                    {tour.category === 'adventure' && '🎢 Приключения'}
+                    {tour.category === 'cultural' && '🏛️ Культура'}
+                    {tour.category === 'mainland' && '🏞️ Материк'}
+                  </div>
+                </div>
+
+                {/* 4 маленьких фото справа */}
+                {galleryImages.slice(1, 5).map((image, index) => (
+                  <div key={index + 1} className="relative h-32 md:h-[11.75rem]">
+                    <img 
+                      src={image} 
+                      alt={`${tour.title} - фото ${index + 2}`}
+                      className="w-full h-full object-cover cursor-pointer hover:opacity-95 transition"
+                      onClick={() => setSelectedImage(index + 1)}
+                    />
+                    
+                    {/* Кнопка "+N фото" на последнем фото */}
+                    {index === 3 && galleryImages.length > 5 && (
+                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center cursor-pointer hover:bg-black/70 transition"
+                           onClick={() => setSelectedImage(5)}>
+                        <span className="text-white text-xl font-bold">
+                          +{galleryImages.length - 5} фото
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Кнопка "Показать все N фото" */}
+              {galleryImages.length > 5 && (
+                <button 
+                  className="absolute bottom-4 left-4 bg-white px-4 py-2 rounded-lg shadow-lg hover:bg-gray-50 transition flex items-center gap-2"
+                  onClick={() => setSelectedImage(0)}
+                >
+                  <span>📸</span>
+                  <span className="font-semibold">Показать все {galleryImages.length} фото</span>
+                </button>
+              )}
+            </div>
+          ) : mainImage ? (
+            // Fallback на старое главное фото если нет галереи
+            <div className="relative w-full h-64 md:h-96 rounded-xl overflow-hidden">
               <img 
                 src={mainImage} 
                 alt={tour.title}
                 className="w-full h-full object-cover"
               />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-blue-400 via-cyan-500 to-blue-600 flex items-center justify-center">
-                <div className="text-center text-white">
-                  <p className="text-4xl mb-2">🏝️</p>
-                  <p className="text-xl font-bold">{tour.title}</p>
-                </div>
+              
+              {/* Category badge */}
+              <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-semibold">
+                {tour.category === 'islands' && '🏝️ Острова'}
+                {tour.category === 'adventure' && '🎢 Приключения'}
+                {tour.category === 'cultural' && '🏛️ Культура'}
+                {tour.category === 'mainland' && '🏞️ Материк'}
               </div>
-            )}
-            
-            {/* Category badge */}
-            <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-semibold">
-              {tour.category === 'islands' && '🏝️ Острова'}
-              {tour.category === 'adventure' && '🎢 Приключения'}
-              {tour.category === 'cultural' && '🏛️ Культура'}
-              {tour.category === 'mainland' && '🏞️ Материк'}
             </div>
-          </div>
+          ) : (
+            // Fallback placeholder если совсем нет фото
+            <div className="relative w-full h-64 md:h-96 rounded-xl overflow-hidden bg-gradient-to-br from-blue-400 via-cyan-500 to-blue-600 flex items-center justify-center">
+              <div className="text-center text-white">
+                <p className="text-4xl mb-2">🏝️</p>
+                <p className="text-xl font-bold">{tour.title}</p>
+              </div>
+            </div>
+          )}
 
           {/* Title and Meta */}
           <div className="mb-6">
@@ -211,28 +297,6 @@ export default function TourDetailsPage() {
               <h2 className="text-2xl font-bold mb-4">Описание</h2>
               <div className="prose prose-lg max-w-none">
                 <p className="text-gray-700 leading-relaxed">{tour.description}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Gallery */}
-          {galleryImages.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold mb-4">📸 Фотогалерея</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {galleryImages.map((image, index) => (
-                  <div 
-                    key={index}
-                    className="relative aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition"
-                    onClick={() => setSelectedImage(index)}
-                  >
-                    <img 
-                      src={image} 
-                      alt={`${tour.title} - фото ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ))}
               </div>
             </div>
           )}
