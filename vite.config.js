@@ -10,5 +10,12 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist'
+  },
+  define: {
+    // Хардкодим Directus URL для production билда
+    // Vite не читает .env.local при production build по дизайну
+    'import.meta.env.VITE_DIRECTUS_URL': process.env.NODE_ENV === 'production' 
+      ? JSON.stringify('https://phuketgo-directus-production.up.railway.app')
+      : undefined
   }
 });
